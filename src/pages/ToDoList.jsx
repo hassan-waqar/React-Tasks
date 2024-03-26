@@ -1,51 +1,13 @@
-import { useState } from 'react';
+import {useEffect, useState} from 'react';
 import { DataGrid } from '@mui/x-data-grid';
-import { Container, TextField, Autocomplete, Button } from "@mui/material";
+import { Container } from "@mui/material";
 import AddToList from "./AddToList"
+import { columnsData } from "../data/columnsData";
+import { rowsData } from "../data/rowsData";
 
 function ToDoList() {
-    const [rows, setRows] = useState([
-        { id: 1, itemName: 'Item 1', priority: 'High', status: 'Pending' },
-        { id: 2, itemName: 'Item 2', priority: 'Medium', status: 'In Progress' },
-        { id: 3, itemName: 'Item 3', priority: 'Low', status: 'Completed' },
 
-    ]);
-
-    // Define columns
-    const columns = [
-        { field: 'id', headerName: 'Item Number', width: 150 },
-        { field: 'itemName', headerName: 'Item Name', width: 150 },
-        { field: 'priority', headerName: 'Priority', width: 150 },
-        { field: 'status', headerName: 'Status', width: 150 },
-        {
-            field: 'delete',
-            headerName: 'Delete',
-            sortable: false,
-            width: 100,
-            renderCell: (params) => (
-                <Button
-                    variant="outlined"
-                    onClick={() => handleDeleteRow(params.row.id)}
-                >
-                    Delete
-                </Button>
-            )
-        },
-        {
-            field: 'edit',
-            headerName: 'Edit',
-            sortable: false,
-            width: 100,
-            renderCell: (params) => (
-                <Button
-                    variant="outlined"
-                    onClick={() => handleEditRow(params.row.id)}
-                >
-                    Edit
-                </Button>
-            )
-        }
-    ];
+    const [rows, setRows] = useState(rowsData);
 
     const handleDeleteRow = (id) => {
         setRows(prevRows => prevRows.filter(row => row.id !== id));
@@ -68,7 +30,7 @@ function ToDoList() {
         handleDeleteRow(id)
     }
 
-
+    const columns = columnsData(handleDeleteRow, handleEditRow);
 
     const addToList = (newItem) => {
         setRows(prevRows => [
