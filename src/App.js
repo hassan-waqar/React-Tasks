@@ -1,25 +1,16 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import ClassCar from './components/ClassCar'; // Assuming both files are in the same directory
+import CarFunctional from "./components/CarFunctional"
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    return (
+        <div>
+            <h1>Welcome to App</h1>
+            {/*<ClassCar message="Hello from App" /> /!* Passing the prop *!/*/}
+            <CarFunctional message="Hello from App" /> {/* Passing the prop */}
+
+        </div>
+    );
 }
 
 export default App;
