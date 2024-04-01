@@ -1,12 +1,14 @@
-import { useFormik } from "formik";
+import { useFormik, FieldArray, Field } from "formik";
 import * as Yup from "yup";
+
 
 export default function Form() {
     const formik = useFormik({
         initialValues: {
             firstName: "",
             lastName: "",
-            email: ""
+            email: "",
+            phNumbers: ['']
         },
 
         onSubmit: (values) => {
@@ -57,6 +59,29 @@ export default function Form() {
             {formik.touched.email && formik.errors.email ? (
                 <div>{formik.errors.email}</div>
             ) : null}
+
+            <FieldArray name = "phNumbers">
+                {(props) => {
+                    const {push, remove, form} = props
+                    const {values} = form
+                    const phNumbers = values ? values.phNumbers : [];
+                    return (
+                        <div>
+                            {phNumbers.map((phNumbers, index) => (
+                                <div key={index}>
+                                    <Field name={`phNumbers[$index]`}/>
+                                    <button type='button' onClick={() => remove(index)}> - </button>
+                                    <button type='button' onCLick={() => push('')}> + </button>
+
+                                    <button></button>
+                                </div>
+                            ))}
+                        </div>
+                    )
+                }}
+
+            </FieldArray>
+
 
             <button type="submit">Submit</button>
         </form>
