@@ -1,5 +1,6 @@
 import useLocalStorage from "./useLocalStorage";
 import useUpdateLogger from "./useUpdateLogger";
+import Form from "./Form";
 
 function App() {
   const [name, setName] = useLocalStorage("name", "")
@@ -11,6 +12,7 @@ function App() {
       {/*  value={name}*/}
       {/*  onChange={(e) => setName(e.target.value)}*/}
       {/*/>*/}
+      <Form/>
     </>
   );
 }

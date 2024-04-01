@@ -1,26 +1,27 @@
-import formik, {useFormik} from "formik";
+import { useFormik } from "formik";
 import * as Yup from "yup";
+
 export default function Form() {
-
-    useFormik({
-        initialValues : {
-            firstName : "",
-            lastName : "",
-            email : ""
+    const formik = useFormik({
+        initialValues: {
+            firstName: "",
+            lastName: "",
+            email: ""
         },
 
-        onSubmit : (values) => {
-            console.log(values)
+        onSubmit: (values) => {
+            console.log(values);
         },
 
-        validationSchema : Yup.object({
-            firstName : Yup.string(),
-            lastName : Yup.string(),
+        validationSchema: Yup.object({
+            firstName: Yup.string().required("First Name is required"),
+            lastName: Yup.string().required("Last Name is required"),
+            email: Yup.string().email("Invalid email address").required("Email is required")
         })
-    })
+    });
 
-    return(
-        <form onSubmit={formik.handleSubmit}>
+    return (
+        <form onSubmit={formik.handleSubmit} style={{display: "flex", flexDirection: "column", width: "300px"}}>
             <input
                 id="firstName"
                 name="firstName"
@@ -28,8 +29,11 @@ export default function Form() {
                 placeholder="First Name"
                 value={formik.values.firstName}
                 onChange={formik.handleChange}
-
             />
+            {formik.touched.firstName && formik.errors.firstName ? (
+                <div>{formik.errors.firstName}</div>
+            ) : null}
+
             <input
                 id="lastName"
                 name="lastName"
@@ -38,15 +42,23 @@ export default function Form() {
                 value={formik.values.lastName}
                 onChange={formik.handleChange}
             />
+            {formik.touched.lastName && formik.errors.lastName ? (
+                <div>{formik.errors.lastName}</div>
+            ) : null}
+
             <input
                 id="email"
                 name="email"
                 type="email"
-                placeholder="Last Name"
+                placeholder="Email"
                 value={formik.values.email}
                 onChange={formik.handleChange}
             />
+            {formik.touched.email && formik.errors.email ? (
+                <div>{formik.errors.email}</div>
+            ) : null}
+
             <button type="submit">Submit</button>
         </form>
-    )
+    );
 }
