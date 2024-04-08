@@ -1,4 +1,5 @@
 import CreatableSelect from "react-select/creatable";
+import Select from "react-select";
 
 const App = () => {
   const options = [
@@ -42,13 +43,19 @@ const App = () => {
     console.log("handleInputChange", inputValue, actionMeta);
   };
   return (
-      <CreatableSelect
-          options={options}
-          onChange={handleChange}
-          onInputChange={handleInputChange}
-          isMulti
-          styles={colorStyles}
-      />
+      <>
+        <CreatableSelect
+            options={options}
+            onChange={handleChange}
+            onInputChange={handleInputChange}
+            isMulti
+            styles={colorStyles}
+        />
+
+        <Select
+            options={options}
+        />
+      </>
   );
 };
 
