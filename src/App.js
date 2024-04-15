@@ -1,71 +1,85 @@
-// Run On Node
-
-const redux = require('redux')
-const reduxLogger = require("redux-logger")
-
+const redux = require('redux');
+const thunkMiddleware = require('redux-thunk').thunk; // Access the default export
+const axios = require('axios');
 const createStore = redux.createStore;
-const combineReducers = redux.combineReducers
-const applyMiddleware = redux.applyMiddleware
-const logger = reduxLogger.createLogger()
+const applyMiddleware = redux.applyMiddleware;
 
-const BUY_CAKE = "BUY_CAKE"
-const BUY_ICECREAM = "BUY_ICECREAM"
+const initialState = {
+    loading: false,
+    users: [],
+    error: ''
+}
 
-const buyCake = () => {
+const FETCH_USERS_REQUESTED = 'FETCH_USERS_REQUESTED'
+const FETCH_USERS_SUCCEEDED = 'FETCH_USERS_SUCCEEDED'
+const FETCH_USERS_FAILED = 'FETCH_USERS_FAILED'
+
+const fetchUsersRequest = () => {
     return {
-        type : BUY_CAKE,
-        info : "First Redux Action"
+        type: FETCH_USERS_REQUESTED
     }
 }
 
-const buyIcecream = () => {
-  return {
-    type : BUY_ICECREAM,
-    info : "Second Redux Action"
-  }
+const fetchUsersSuccess = users => {
+    return {
+        type: FETCH_USERS_SUCCEEDED,
+        payload: users
+    }
 }
 
-const cakeInitialValues = {
-  numOfCakes : 10
+const fetchUsersFailure = error => {
+    return {
+        type: FETCH_USERS_FAILED,
+        payload: error
+    }
 }
 
-const icecreamInitialValues = {
-  numOfIcecreams : 20
+const fetchUsers = () => {
+    return function (dispatch) {
+        dispatch(fetchUsersRequest())
+        axios
+            .get('https://jsonplaceholder.typicode.com/users')
+            .then(response => {
+                // response.data is the users
+                const users = response.data.map(user => user.id)
+                dispatch(fetchUsersSuccess(users))
+            })
+            .catch(error => {
+                // error.message is the error message
+                dispatch(fetchUsersFailure(error.message))
+            })
+    }
 }
 
-const cakeReducer = (state = cakeInitialValues, action) => {
+const reducer = (state = initialState, action) => {
+    console.log(action.type)
+    // eslint-disable-next-line default-case
     switch (action.type) {
-        case BUY_CAKE: return {
-            ...state,
-            numOfCakes: state.numOfCakes -1
-        }
+        case FETCH_USERS_REQUESTED:
+            return {
+                ...state,
+                loading: true
+            }
+        case FETCH_USERS_SUCCEEDED:
+            return {
+                loading: false,
+                users: action.payload,
+                error: ''
+            }
+        case FETCH_USERS_FAILED:
+            return {
+                loading: false,
+                users: [],
+                error: action.payload
+            }
 
-        default : return state
+        default:
+            return state; //
     }
 }
 
-const icecreamReducer = (state = icecreamInitialValues, action) => {
-  switch (action.type) {
-    case BUY_ICECREAM: return {
-      ...state,
-      numOfIcecreams: state.numOfIcecreams -1
-    }
-
-    default : return state
-  }
-}
-
-const rootReducer = combineReducers({
-  cake : cakeReducer,
-  icecream : icecreamReducer
+const store = createStore(reducer, applyMiddleware(thunkMiddleware))
+store.subscribe(() => {
+    console.log(store.getState())
 })
-
-const store = createStore(rootReducer, applyMiddleware(logger))
-console.log("Initial State : ", store.getState())
-const unsubscribe = store.subscribe(()=> {})
-store.dispatch(buyCake())
-store.dispatch(buyCake())
-store.dispatch(buyCake())
-store.dispatch(buyIcecream())
-store.dispatch(buyIcecream())
-unsubscribe()
+store.dispatch(fetchUsers())
