@@ -1,10 +1,12 @@
-import './App.css';
+import React from 'react';
+import Button from '../src/Button';
+import NewsItem from '../src/NewsItem'
+import Loading from '../src/Loading'
 
-function App() {
-  return (
-    <>
-    </>
-  );
-}
-
-export default App;
+let App = () => (
+    <div>
+      <Button />
+      <Loading />
+      <NewsItem />
+    </div>
+);export default App;
