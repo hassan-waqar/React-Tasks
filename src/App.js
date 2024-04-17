@@ -1,10 +1,7 @@
-import './App.css';
+import TodoList from "./features/todos/TodoList";
 
 function App() {
-  return (
-    <>
-    </>
-  );
+  return <TodoList />
 }
 
 export default App;
