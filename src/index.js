@@ -1,51 +1,88 @@
+
 import * as React from "react";
 import * as ReactDOM from "react-dom/client";
-import {
-    createBrowserRouter,
-    RouterProvider,
-} from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { Provider } from "react-redux";
+import { configureStore, applyMiddleware } from "@reduxjs/toolkit";
+import logger from 'redux-logger'; // Import Redux Logger middleware
+import authReducer from "./redux/auth"; // Assuming you have your auth reducer in a file named auth.js
 import "./index.css";
+import Root, { loader as rootLoader, action as rootAction } from "./routes/root";
 import ErrorPage from "./error-page";
-import Contact, {
-    loader as contactLoader,
-} from "./routes/contacts";
-import Root, {
-    loader as rootLoader,
-    action as rootAction,
-} from "./routes/root";
-import EditContact from "./routes/edit";
-import Parent from "./components/Parent";
-import Child from "./components/Child";
-
+import Profile from "./components/Profile";
+import Userdashboard from "./components/UserDashboard";
+import Admindashboard from "./components/AdminDashboard";
+import UsersList from "./components/UsersList";
+import ProtectedRoute from "./routes/ProtectedRoute";
+import UserRoutes from "./routes/UserRoutes";
+import AdminRoutes from "./routes/AdminRoutes";
 const router = createBrowserRouter([
     {
         path: "/",
         element: <Root />,
         errorElement: <ErrorPage />,
-        loader: rootLoader,
-        action: rootAction,
+
+    },
+    {
+        path: "/user",
+        element: <UserRoutes />,
+        errorElement: <ErrorPage />,
         children: [
             {
-                path: "contacts/:contactId",
-                element: <Contact />,
-                loader: contactLoader,
+                path: "/user/profile",
+                element:
+                    <ProtectedRoute userType="user" component={Profile} />
+
             },
             {
-                path: "contacts/:contactId/edit",
-                element: <EditContact />,
-                loader: contactLoader,
+                path: "/user/userdashboard",
+                element: (
+                    <ProtectedRoute userType="user" component={Userdashboard} />
+                ),
             },
         ],
+
+    },
+    {
+        path: "/admin",
+        element: <AdminRoutes />,
+        errorElement: <ErrorPage />,
+        children: [
+            {
+                path: "/admin/userslist",
+                element:
+                    <ProtectedRoute userType="admin" component={UsersList} />
+
+            },
+            {
+                path: "/admin/admindashboard",
+                element: (
+                    <ProtectedRoute userType="admin" component={Admindashboard} />
+                ),
+            },
+        ],
+
     },
 
 ]);
 
-ReactDOM.createRoot(document.getElementById("root")).render(
-    // <React.StrictMode>
-    //     <RouterProvider router={router} />
-    // </React.StrictMode>
 
-    <>
-        <Parent render={(data) => <Child data={data} />} />
-    </>
+// Manually create middleware array
+const middleware = [logger]; // Include Redux Logger middleware or any other middleware you want to use
+
+// Create Redux store with middleware
+const store = configureStore({
+    reducer: {
+        auth: authReducer,
+    },
+    middleware: getDefaultMiddleware => getDefaultMiddleware().concat(middleware),
+});
+
+ReactDOM.createRoot(document.getElementById("root")).render(
+    <React.StrictMode>
+        <Provider store={store}>
+            <RouterProvider router={router} />
+        </Provider>
+    </React.StrictMode>
+
 );
