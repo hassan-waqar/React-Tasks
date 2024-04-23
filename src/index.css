@@ -27,3 +27,15 @@ body {
   line-height: 1.5;
   color: #121212;
 }
+
+.demo-logo-vertical {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+  color: white; /* Choose your desired color */
+  text-transform: uppercase;
+  text-align: center;
+  padding: 20px 10px;
+  /*padding: "20px 0px";*/
+  /*margin: 10px auto; !* Center the logo horizontally *!*/
+}

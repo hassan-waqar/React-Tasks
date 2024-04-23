@@ -42,15 +42,39 @@ const Search = () => {
     }));
 
     return (
-        <div>
+        <div style={{
+            width : "100%",
+            padding: "5px 10px",
+
+        }}>
             <Select
                 isSearchable
+                styles={{
+                    control: (provided) => ({
+                        ...provided,
+                        height: "50px",
+                        minHeight: "30px",// Vertically center the input
+                    }),
+                    input: (provided) => ({
+                        ...provided,
+                        height: "100%", // Adjust the height of the input field
+                        margin: "-30px 0px", // Reset margin to ensure it aligns properly
+
+                    }),eight: "100px", // Adjust the height of the dropdown menu
+                    // }),
+                    indicatorsContainer: (provided) => ({
+                        ...provided,
+                        height: "50px",
+                        minHeight: "30px", // Adjust the height of the indicators container
+                    }),
+                }}
                 value={{ value: query, label: query }}
                 onChange={handleInputChange}
                 options={options}
                 isClearable
                 placeholder="Search..."
             />
+
         </div>
     );
 };
