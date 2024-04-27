@@ -1,46 +1,39 @@
 import React, { useState, useEffect } from "react";
-import { getFirestore, collection, getDocs } from "firebase/firestore";
+import {fetchData} from "../api/UserProducts";
+import ProductCard from "./productCard";
+import {Col, Flex, Row} from "antd";
 
-const db = getFirestore();
 
 
 const UserProducts = () => {
     const [products, setProducts] = useState([]);
 
+
+
+    const getData = async () => {
+        try {
+            const productsData = await fetchData();
+            setProducts(productsData)
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    };
+
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                // Get a reference to the "products" collection
-                const productsRef = collection(db, "products");
-
-                // Fetch data from Firestore
-                const querySnapshot = await getDocs(productsRef);
-
-                // Extract data from query snapshot
-                const productsData = querySnapshot.docs.map((doc) => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-
-                // Update state with the retrieved products data
-                setProducts(productsData);
-            } catch (error) {
-                console.error("Error fetching products:", error);
-            }
-        };
-
-        // Call the fetchData function
-        fetchData();
-    }, []); // Empty dependency array ensures that the effect runs only once after component mount
+        getData();
+    }, []);
 
     return (
         <div>
-            <h2>User Products</h2>
-            <ul>
+            {/*<h2>User Products</h2>*/}
+            <Row gutter={30}>
                 {products.map((product) => (
-                    <li key={product.id}>{product.name}</li>
+                    <Col xs={24} sm={12} md={8} lg={6} xl={6}>
+                        <ProductCard product={product} />
+                    </Col>
                 ))}
-            </ul>
+            </Row>
+
         </div>
     );
 };

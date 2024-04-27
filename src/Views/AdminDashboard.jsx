@@ -40,9 +40,17 @@ const App = () => {
 
     return (
         <Layout>
-            <Sider trigger={null} collapsible collapsed={collapsed} style={{
-                height: "100vh"
-            }}>
+            <Sider
+                trigger={null}
+                collapsible
+                collapsed={collapsed}
+                style={{
+                    minHeight: "100vh",
+                    position: "sticky",
+                    top: "0px",
+                    zIndex: 1,
+                }}
+            >
                 <div className="demo-logo-vertical">E-commerce</div>
                 <Menu
                     theme="dark"
