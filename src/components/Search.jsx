@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import algoliasearch from 'algoliasearch';
 import Select from 'react-select';
+import {fetchData} from "../api/UserProducts";
 
 const Search = () => {
     const [query, setQuery] = useState('');
@@ -8,8 +9,34 @@ const Search = () => {
 
     // Initialize Algolia client
     const algoliaClient = algoliasearch('J16E32DSRA', '46eb4297f5942dca483f9a7cd6dcd1ce');
-    const algoliaIndex = algoliaClient.initIndex('testing_algolia');
+    const algoliaIndex = algoliaClient.initIndex('e-commerce');
 
+
+    const setUp = async () => {
+        // const products = [
+        //     { objectID: '1', name: "Iphone-11, Rs. 90000", description: 'Description of Product 1', price: 10 },
+        //     { objectID: '2', name: "Google Pixel 8, Rs. 90", description: 'Description of Product 2', price: 20 },
+        //     // Add more products...
+        // ];
+
+        const products = await fetchData()
+        const productsWithObjectId = products.map(product => ({
+            ...product,
+            objectID: product.id,
+            id: undefined, // Remove the 'id' property
+        }));
+        console.log(productsWithObjectId)
+
+        algoliaIndex.saveObjects(productsWithObjectId).then(({ objectIDs }) => {
+            console.log('Product data indexed:', objectIDs);
+        }).catch(error => {
+            console.error('Error indexing product data:', error);
+        });
+    }
+
+    useEffect(() => {
+        setUp()
+    }, [])
     useEffect(() => {
         // Function to perform search query
         const search = async (query) => {

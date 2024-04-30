@@ -1,4 +1,18 @@
-import { getFirestore, doc, getDoc,getDocs, setDoc, updateDoc, arrayUnion, collection, arrayRemove } from 'firebase/firestore';
+import {
+    getFirestore,
+    doc,
+    getDoc,
+    getDocs,
+    setDoc,
+    updateDoc,
+    arrayUnion,
+    collection,
+    arrayRemove,
+    addDoc,
+    query,
+    where
+
+} from 'firebase/firestore';
 
 export const fetchData = async () => {
     const db = getFirestore();
@@ -79,6 +93,15 @@ export const getCartData = async (userId) => {
         return [];
     }
 };
+
+export const updateCart = async(cartData) => {
+    console.log(cartData)
+}
+
+export const emptyCart = async(userId) => {
+
+}
+
 export const removeProductFromCart = async (userId, productId) => {
     const db = getFirestore();
     const userCartRef = doc(db, 'carts', userId);
@@ -101,5 +124,109 @@ export const removeProductFromCart = async (userId, productId) => {
         }
     } catch (error) {
         console.error('Error removing product from cart:', error);
+    }
+};
+
+export const placeOrderUser = async (userId, products) => {
+    const db = getFirestore();
+    try {
+        console.log(products)
+        // Add a new order document to the "orders" collection
+        const orderRef = await addDoc(collection(db, 'orders'), {
+            userId: userId,
+            products: products
+        });
+
+        console.log('Order placed successfully with ID:', orderRef.id);
+        return orderRef.id; // Return the ID of the newly created order
+    } catch (error) {
+        console.error('Error placing order:', error);
+        throw error; // Rethrow the error to handle it in the calling code
+    }
+};
+
+export const getOrdersData = async (userId) => {
+    try {
+        const db = getFirestore();
+        const userOrdersQuery = query(collection(db, 'orders'), where('userId', '==', userId));
+        const ordersSnapshot = await getDocs(userOrdersQuery);
+
+        if (!ordersSnapshot.empty) {
+            const orders = [];
+            for (const orderDoc of ordersSnapshot.docs) {
+                const orderData = orderDoc.data();
+                const products = [];
+                for (const productRef of orderData.products) {
+                    try {
+                        const productDoc = await getDoc(doc(db, 'products', productRef.id));
+                        if (productDoc.exists()) {
+                            products.push({ id: productDoc.id, quantityOrdered: productRef.quantityOrdered, ...productDoc.data() });
+                        } else {
+                            console.log(`Product with ID ${productRef.id} not found.`);
+                        }
+                    } catch (error) {
+                        console.error('Error fetching product:', error);
+                    }
+                }
+                orders.push({ id: orderDoc.id, products, status: orderData.status });
+            }
+            return orders;
+        } else {
+            console.log('User orders not found.');
+            return [];
+        }
+    } catch(error){
+        console.error('Error Fetching User Orders:', error);
+    }
+}
+
+export const getAllOrders = async () => {
+    try {
+        const db = getFirestore();
+        const ordersRef = collection(db, 'orders');
+        const ordersSnapshot = await getDocs(ordersRef);
+
+        const orders = [];
+        if (!ordersSnapshot.empty) {
+            for (const orderDoc of ordersSnapshot.docs) {
+                const orderData = orderDoc.data();
+                console.log(orderData)
+                const products = [];
+                for (const productRef of orderData.products) {
+                    try {
+                        const productDoc = await getDoc(doc(db, 'products', productRef.id));
+                        if (productDoc.exists()) {
+                            products.push({ id: productDoc.id, quantityOrdered: productRef.quantityOrdered, ...productDoc.data() });
+                        } else {
+                            console.log(`Product with ID ${productRef.id} not found.`);
+                        }
+                    } catch (error) {
+                        console.error('Error fetching product:', error);
+                    }
+                }
+                orders.push({ id: orderDoc.id, products, status: orderData.status });
+
+            }
+        }
+
+        return orders;
+    } catch (error) {
+        console.error('Error fetching orders:', error);
+        return [];
+    }
+};
+
+export const changeStatus = async (order, status) => {
+    try {
+        const db = getFirestore();
+        const orderRef = doc(db, 'orders', order.id);
+
+        // Update the status field of the order document
+        await setDoc(orderRef, { status }, { merge: true });
+
+        console.log(`Status of order ${order.id} changed to ${status}`);
+    } catch (error) {
+        console.error('Error changing status:', error);
+        throw error; // Rethrow the error to handle it in the calling code
     }
 };
