@@ -8,46 +8,69 @@ import {
     VideoCameraOutlined,
 } from '@ant-design/icons';
 import { Button, Layout, Menu, theme } from 'antd';
-import Search from "./components/Search";
+import Search from "../components/Search";
+import {Link, Outlet} from 'react-router-dom'
+import { useNavigate } from 'react-router-dom';
 const { Header, Sider, Content } = Layout;
 const App = () => {
+    const navigate = useNavigate();
     const [collapsed, setCollapsed] = useState(false);
     const {
         token: { colorBgContainer, borderRadiusLG },
     } = theme.useToken();
+
+    const handleMenuClick = (key) => {
+        switch (key) {
+            case '1':
+                navigate('/user');
+                break;
+            case '2':
+                navigate('/user/cart');
+                break;
+            case '3':
+                navigate('/user/orders');
+                break;
+            case '4':
+                navigate('/user/profile');
+                break;
+            default:
+                break;
+        }
+    };
+
     return (
         <Layout>
-            <Sider trigger={null} collapsible collapsed={collapsed} style={{
-                height: "100vh"
-            }}>
+            <Sider
+                trigger={null}
+                collapsible
+                collapsed={collapsed}
+                style={{
+                    minHeight: "100vh",
+                    position: "sticky",
+                    top: "0px",
+                    zIndex: 1,
+                }}
+            >
                 <div className="demo-logo-vertical">E-commerce</div>
                 <Menu
                     theme="dark"
                     mode="inline"
                     defaultSelectedKeys={['1']}
-                    items={[
-                        {
-                            key: '1',
-                            icon: <HomeOutlined />,
-                            label: "Home",
-                        },
-                        {
-                            key: '2',
-                            icon: <ShoppingCartOutlined />,
-                            label: 'Shopping Cart',
-                        },
-                        {
-                            key: '3',
-                            icon: <OrderedListOutlined />,
-                            label: 'Orders',
-                        },                        {
-                            key: '4',
-                            icon: <UserOutlined />,
-                            label: 'Profile',
-                        },
-
-                    ]}
-                />
+                    onClick={({ key }) => handleMenuClick(key)}
+                >
+                    <Menu.Item key="1" icon={<HomeOutlined />}>
+                        Home
+                    </Menu.Item>
+                    <Menu.Item key="2" icon={<ShoppingCartOutlined />}>
+                        Shopping Cart
+                    </Menu.Item>
+                    <Menu.Item key="3" icon={<OrderedListOutlined />}>
+                        Orders
+                    </Menu.Item>
+                    <Menu.Item key="4" icon={<UserOutlined />}>
+                        Profile
+                    </Menu.Item>
+                </Menu>
             </Sider>
             <Layout>
                 <Header
@@ -56,8 +79,6 @@ const App = () => {
                         background: colorBgContainer,
                         display: "flex",
                         margin: 0,
-                        // height: "100px"
-
                     }}
                 >
                     <Button
@@ -81,7 +102,7 @@ const App = () => {
                         borderRadius: borderRadiusLG,
                     }}
                 >
-                    Content
+                    <Outlet/>
                 </Content>
             </Layout>
         </Layout>
