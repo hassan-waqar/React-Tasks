@@ -21,6 +21,7 @@ import logger from 'redux-logger'; // Import Redux Logger middleware
 import authReducer from "./redux/auth";
 import UserSignup from "./Views/UserSignup";
 import UserProducts from "./components/UserProducts";
+import IndividualProduct from "./components/IndividualProduct";
 
 const router = createBrowserRouter([
     {
@@ -54,6 +55,11 @@ const router = createBrowserRouter([
                 element:
                     <ProtectedRoute userType="user" component={UserProducts} />
 
+            },
+            {
+                path: "/user/product/:id",
+                element:
+                    <ProtectedRoute userType="user" component={IndividualProduct}/>
             },
             {
                 path: "/user/profile",

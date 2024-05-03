@@ -2,11 +2,13 @@ import React, { useEffect, useState } from 'react';
 import {Button, message, Space, Table, Select, Popconfirm, Flex, InputNumber, Collapse, Menu, Dropdown} from 'antd';
 import { getAuth } from 'firebase/auth';
 import {removeProductFromCart, getOrdersData, getAllOrders, changeStatus} from "../api/UserProducts";
+import Loading from "./Loading";
 const { Option } = Select;
 const AdminOrders = () => {
     const auth = getAuth();
     const [ordersData, setOrdersdata] = useState([]);
     const [items, setItems] = useState([])
+    const [loading, setLoading] = useState(false)
 
     const columns = [
         {
@@ -35,10 +37,14 @@ const AdminOrders = () => {
         },
     ];
 
+
+
     const getData = async () => {
         try {
             const ordersData = await getAllOrders();
+            setLoading(true)
             setOrdersdata(ordersData)
+            setLoading(false)
             console.log(ordersData)
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -96,6 +102,7 @@ const AdminOrders = () => {
     }
 
     useEffect(() => {
+        // if(!loading) return () => <Loading/>
         getData();
     }, []);
 
@@ -109,6 +116,7 @@ const AdminOrders = () => {
 
     return (
         <>
+            {loading && <Loading />}
             <Collapse items={items} defaultActiveKey={['1']} onChange={onChange} />
         </>
     );

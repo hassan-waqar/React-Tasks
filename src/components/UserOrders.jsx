@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import {Button, message, Space, Table, Popconfirm, Flex, InputNumber, Collapse} from 'antd';
+import {Button, message, Space, Table, Popconfirm, Flex, InputNumber, Collapse, Spin, Empty} from 'antd';
 import { getAuth } from 'firebase/auth';
 import {removeProductFromCart, getOrdersData} from "../api/UserProducts";
+import {LoadingOutlined} from "@ant-design/icons";
+import Loading from "./Loading";
 
 const App = () => {
     const auth = getAuth();
     const [ordersData, setOrdersdata] = useState([]);
     const [items, setItems] = useState([])
+    const [loading, setLoading] = useState(false)
 
     const columns = [
         {
@@ -37,7 +40,9 @@ const App = () => {
 
     const getData = async () => {
         try {
+            setLoading(true)
             const ordersData = await getOrdersData(auth.currentUser.uid);
+            setLoading(false)
             setOrdersdata(ordersData)
             console.log(ordersData)
         } catch (error) {
@@ -72,8 +77,6 @@ const App = () => {
             children: (
                 <div>
                     <Table columns={columns} dataSource={order?.products} />
-                    {/*<p>Order ID: {order.id}</p>*/}
-                    {/*<p>Order Date: {order.date}</p>*/}
                 </div>
             ),
             extra : genExtra(order.status)
@@ -82,10 +85,14 @@ const App = () => {
         return items
     }
 
+
     useEffect(() => {
        setItems(setItemsForDisplay())
-       getData();
     }, [ordersData]);
+
+    useEffect(() => {
+        getData();
+    }, []);
 
     const onChange = (key) => {
         console.log(key);
@@ -93,7 +100,9 @@ const App = () => {
 
     return (
         <>
-            <Collapse items={items} defaultActiveKey={['1']} onChange={onChange} />
+            {loading && <Loading/>}
+            {ordersData.length === 0 ? <Empty />:
+            <Collapse items={items} defaultActiveKey={['1']} onChange={onChange} />}
         </>
     );
 }

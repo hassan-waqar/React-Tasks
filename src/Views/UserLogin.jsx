@@ -1,9 +1,9 @@
-import React from 'react';
-import { Button, Checkbox, Form, Input } from 'antd';
+import React, {useEffect} from 'react';
+import {Button, Checkbox, Form, Input, message} from 'antd';
 import { useNavigate } from 'react-router-dom';
-import {setUserAuthenticated} from "../redux/auth";
+import auth, {setUserAuthenticated} from "../redux/auth";
 import {useDispatch} from "react-redux";
-import {doSignInWithEmailAndPassword, doSignInWithGoogle} from "../firebase/auth";
+import {doSignInWithEmailAndPassword, doSignInWithGoogle, doSignOut, signOut} from "../firebase/auth";
 import {useAuth} from "../contexts/authContext";
 
 const App = () => {
@@ -19,16 +19,19 @@ const App = () => {
             dispatch(setUserAuthenticated(true));
             navigate('/user');
         } catch (error) {
+            message.error("Invalid Username Or Password")
             console.error('Error signing in:', error);
             // Handle sign-in errors
         }
     };
     const onGoogleSignIn = async (e) => {
         try {
+            await signOutAndClearAuthState()
             await doSignInWithGoogle();
             dispatch(setUserAuthenticated(true));
             navigate('/user');
         } catch (err) {
+            message.error("Invalid Username Or Password")
             console.log(err);
             // Handle error, if needed
         }
@@ -37,6 +40,15 @@ const App = () => {
     const onFinishFailed = (errorInfo) => {
         console.log('Failed:', errorInfo);
     };
+
+    const signOutAndClearAuthState = async () => {
+        try {
+            await doSignOut()
+        } catch (error) {
+            console.error('Error signing out or clearing auth state:', error);
+        }
+    };
+
 
     return (
 

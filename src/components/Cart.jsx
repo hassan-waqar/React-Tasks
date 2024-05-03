@@ -3,6 +3,7 @@ import {Button, message, Space, Table, Popconfirm, Flex, InputNumber} from 'antd
 import { getAuth } from 'firebase/auth';
 import {placeOrderUser, getCartData, removeProductFromCart, updateCart} from "../api/UserProducts";
 import PlaceOrder from "./PlaceOrder";
+import Loading from "./Loading";
 
 const App = () => {
     const auth = getAuth();
@@ -11,6 +12,7 @@ const App = () => {
     const [confirmLoading, setConfirmLoading] = useState({});
     const [quantityChanged, setQuantityChanged] = useState();
     const [totalPrice, setTotalPrice] = useState(0)
+    const [loading, setLoading] = useState(false)
 
     const columns = [
         {
@@ -84,7 +86,9 @@ const App = () => {
 
     const getData = async () => {
         try {
+            setLoading(true)
             const cartData = await getCartData(auth.currentUser.uid);
+            setLoading(false)
             setCartdata(cartData)
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -149,6 +153,7 @@ const App = () => {
             await placeOrderUser(auth.currentUser.uid, products);
 
             message.success("Order Placed Successfully");
+            setCartdata([])
         } catch (error) {
             message.error("Failed to place order");
             console.error('Error uploading data:', error);
@@ -157,10 +162,12 @@ const App = () => {
 
     return (
         <>
-            <Table columns={columns} dataSource={cartData} />
-            <Flex style={{flexDirection: "row-reverse", justifyContent: "center"}}>
-                <PlaceOrder totalPrice={totalPrice} placeOrder={placeOrder}/>
-            </Flex>
+            {loading
+                ?<Loading/>
+                :<><Table columns={columns} dataSource={cartData} />
+                    <Flex style={{flexDirection: "row-reverse", justifyContent: "center"}}>
+                        <PlaceOrder totalPrice={totalPrice} placeOrder={placeOrder}/>
+                    </Flex></>}
         </>
     );
 }

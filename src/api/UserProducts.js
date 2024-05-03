@@ -29,7 +29,7 @@ export const fetchData = async () => {
         console.error("Error fetching products:", error);
     }
 };
-export const addProductToCart = async (userId, productId) => {
+export const addProductToCart = async (userId, productId, quantity) => {
     const db = getFirestore();
     const userCartRef = doc(db, 'carts', userId);
 
@@ -38,13 +38,25 @@ export const addProductToCart = async (userId, productId) => {
         const userCartSnapshot = await getDoc(userCartRef);
 
         if (userCartSnapshot.exists()) {
-            // User's cart document exists, update the array of products
-            await updateDoc(userCartRef, {
-                products: arrayUnion(productId) // Add the productId to the products array
-            });
+            // User's cart document exists, check if the product already exists in the cart
+            const userCartData = userCartSnapshot.data();
+            const existingProductIndex = userCartData.products.findIndex(product => product.productId === productId);
+
+            if (existingProductIndex !== -1) {
+                // Product already exists, update its quantity
+                const updatedProducts = [...userCartData.products];
+                updatedProducts[existingProductIndex].quantity += quantity;
+
+                await updateDoc(userCartRef, { products: updatedProducts });
+            } else {
+                // Product doesn't exist, add it as a new product
+                await updateDoc(userCartRef, {
+                    products: arrayUnion({ productId, quantity }),
+                });
+            }
         } else {
-            // User's cart document does not exist, create a new document
-            await setDoc(userCartRef, { userId, products: [productId] });
+            // User's cart document does not exist, create a new document with the product
+            await setDoc(userCartRef, { userId, products: [{ productId, quantity }] });
         }
 
         console.log('Product added to cart successfully.');
@@ -56,7 +68,6 @@ export const getCartData = async (userId) => {
     const db = getFirestore();
     const userCartRef = doc(db, 'carts', userId);
 
-
     try {
         // Get the user's cart document
         const userCartSnapshot = await getDoc(userCartRef);
@@ -64,16 +75,20 @@ export const getCartData = async (userId) => {
         if (userCartSnapshot.exists()) {
             // User's cart document exists, fetch the product objects from Firestore
             const userData = userCartSnapshot.data();
-            const productIds = userData.products || [];
+            const productsInCart = userData.products || [];
 
             // Fetch product objects for each product ID
-            const products = await Promise.all(productIds.map(async (productId) => {
+            const products = await Promise.all(productsInCart.map(async (productItem) => {
+                const productId = productItem.productId;
+                const productQuantity = productItem.quantity;
+
                 const productRef = doc(db, 'products', productId);
                 const productSnapshot = await getDoc(productRef);
+
                 if (productSnapshot.exists()) {
-                    // Include the product ID in the product data
+                    // Include the product ID and quantity in the product data
                     const productData = productSnapshot.data();
-                    return { ...productData, id: productId };
+                    return { ...productData, id: productId, quantityOrdered: productQuantity };
                 } else {
                     console.log(`Product with ID ${productId} not found.`);
                     return null;
@@ -82,8 +97,9 @@ export const getCartData = async (userId) => {
 
             // Filter out null values (products not found)
             const validProducts = products.filter(product => product !== null);
+            console.log(validProducts)
             return validProducts;
-        }else {
+        } else {
             // User's cart document does not exist
             console.log('User cart not found.');
             return [];
@@ -98,9 +114,18 @@ export const updateCart = async(cartData) => {
     console.log(cartData)
 }
 
-export const emptyCart = async(userId) => {
+export const emptyCart = async (userId) => {
+    const db = getFirestore();
+    const userCartRef = doc(db, 'carts', userId);
 
-}
+    try {
+        // Update the user's cart document to remove all products
+        await updateDoc(userCartRef, { products: [] });
+        console.log('Cart emptied successfully.');
+    } catch (error) {
+        console.error('Error emptying cart:', error);
+    }
+};
 
 export const removeProductFromCart = async (userId, productId) => {
     const db = getFirestore();
@@ -111,13 +136,24 @@ export const removeProductFromCart = async (userId, productId) => {
         const userCartSnapshot = await getDoc(userCartRef);
 
         if (userCartSnapshot.exists()) {
-            console.log(productId)
-            // User's cart document exists, remove the product ID from the array
-            await updateDoc(userCartRef, {
-                products: arrayRemove(productId) // Remove the productId from the products array
-            });
+            // User's cart document exists, fetch the products array
+            const userData = userCartSnapshot.data();
+            let updatedProducts = userData.products || [];
 
-            console.log('Product removed from cart successfully.');
+            // Find the index of the product with the matching productId
+            const index = updatedProducts.findIndex(product => product.productId === productId);
+
+            if (index !== -1) {
+                // Remove the product from the array if found
+                updatedProducts.splice(index, 1);
+
+                // Update the cart document with the updated products array
+                await updateDoc(userCartRef, { products: updatedProducts });
+
+                console.log('Product removed from cart successfully.');
+            } else {
+                console.log('Product not found in cart.');
+            }
         } else {
             // User's cart document does not exist
             console.log('User cart not found.');
@@ -126,6 +162,7 @@ export const removeProductFromCart = async (userId, productId) => {
         console.error('Error removing product from cart:', error);
     }
 };
+
 
 export const placeOrderUser = async (userId, products) => {
     const db = getFirestore();
@@ -138,6 +175,7 @@ export const placeOrderUser = async (userId, products) => {
         });
 
         console.log('Order placed successfully with ID:', orderRef.id);
+        await emptyCart(userId);
         return orderRef.id; // Return the ID of the newly created order
     } catch (error) {
         console.error('Error placing order:', error);
@@ -230,3 +268,22 @@ export const changeStatus = async (order, status) => {
         throw error; // Rethrow the error to handle it in the calling code
     }
 };
+
+export const getProductData = async (id) => {
+    try {
+        const db = getFirestore();
+        const productRef = doc(db, 'products', id);
+        const productSnapshot = await getDoc(productRef);
+
+        if (productSnapshot.exists()) {
+            // Product document exists, return its data
+            return productSnapshot.data();
+        } else {
+            console.log(`Product with ID ${id} not found.`);
+            return null;
+        }
+    } catch (error) {
+        console.error('Error fetching product data:', error);
+        throw error;
+    }
+}
